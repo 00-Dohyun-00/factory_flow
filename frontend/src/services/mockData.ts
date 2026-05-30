@@ -1,5 +1,12 @@
 import type { Equipment, Material, WorkOrder, ProductionResult, DashboardKPI } from '@/types'
 
+// 현재 날짜 기준으로 동적 날짜 생성
+const getRecentDate = (daysAgo: number) => {
+  const date = new Date()
+  date.setDate(date.getDate() - daysAgo)
+  return date.toISOString().split('T')[0]
+}
+
 export const mockEquipmentData: Equipment[] = [
   {
     id: '1',
@@ -53,7 +60,7 @@ export const mockMaterialData: Material[] = [
     safetyStock: 100,
     unit: 'kg',
     status: 'normal',
-    lastMovementDate: '2024-05-28'
+    lastMovementDate: getRecentDate(2)
   },
   {
     id: '2',
@@ -64,7 +71,7 @@ export const mockMaterialData: Material[] = [
     safetyStock: 200,
     unit: '개',
     status: 'critical',
-    lastMovementDate: '2024-05-25'
+    lastMovementDate: getRecentDate(5)
   },
   {
     id: '3',
@@ -75,7 +82,7 @@ export const mockMaterialData: Material[] = [
     safetyStock: 100,
     unit: 'roll',
     status: 'low',
-    lastMovementDate: '2024-05-27'
+    lastMovementDate: getRecentDate(3)
   },
   {
     id: '4',
@@ -86,7 +93,7 @@ export const mockMaterialData: Material[] = [
     safetyStock: 150,
     unit: 'kg',
     status: 'normal',
-    lastMovementDate: '2024-05-29'
+    lastMovementDate: getRecentDate(1)
   }
 ]
 
@@ -99,8 +106,8 @@ export const mockWorkOrderData: WorkOrder[] = [
     completedQuantity: 750,
     equipment: 'EQ001',
     status: 'in_progress',
-    startDate: '2024-05-25',
-    dueDate: '2024-06-01'
+    startDate: getRecentDate(5),
+    dueDate: getRecentDate(-2)
   },
   {
     id: '2',
@@ -110,8 +117,8 @@ export const mockWorkOrderData: WorkOrder[] = [
     completedQuantity: 500,
     equipment: 'EQ002',
     status: 'completed',
-    startDate: '2024-05-20',
-    dueDate: '2024-05-28'
+    startDate: getRecentDate(10),
+    dueDate: getRecentDate(2)
   },
   {
     id: '3',
@@ -121,8 +128,8 @@ export const mockWorkOrderData: WorkOrder[] = [
     completedQuantity: 0,
     equipment: 'EQ003',
     status: 'waiting',
-    startDate: '2024-06-01',
-    dueDate: '2024-06-10'
+    startDate: getRecentDate(-2),
+    dueDate: getRecentDate(-12)
   },
   {
     id: '4',
@@ -132,8 +139,8 @@ export const mockWorkOrderData: WorkOrder[] = [
     completedQuantity: 0,
     equipment: 'EQ004',
     status: 'cancelled',
-    startDate: '2024-05-30',
-    dueDate: '2024-06-05'
+    startDate: getRecentDate(0),
+    dueDate: getRecentDate(-5)
   }
 ]
 
@@ -147,7 +154,7 @@ export const mockProductionResultData: ProductionResult[] = [
     defectQuantity: 5,
     yieldRate: 98.0,
     equipment: 'EQ001',
-    workDate: '2024-05-29'
+    workDate: getRecentDate(1)
   },
   {
     id: '2',
@@ -158,7 +165,7 @@ export const mockProductionResultData: ProductionResult[] = [
     defectQuantity: 10,
     yieldRate: 98.0,
     equipment: 'EQ002',
-    workDate: '2024-05-28'
+    workDate: getRecentDate(2)
   },
   {
     id: '3',
@@ -169,7 +176,7 @@ export const mockProductionResultData: ProductionResult[] = [
     defectQuantity: 8,
     yieldRate: 97.3,
     equipment: 'EQ001',
-    workDate: '2024-05-27'
+    workDate: getRecentDate(3)
   },
   {
     id: '4',
@@ -180,7 +187,7 @@ export const mockProductionResultData: ProductionResult[] = [
     defectQuantity: 2,
     yieldRate: 99.0,
     equipment: 'EQ001',
-    workDate: '2024-05-26'
+    workDate: getRecentDate(4)
   }
 ]
 

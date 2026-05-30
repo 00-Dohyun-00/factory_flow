@@ -5,6 +5,10 @@
         <div class="page-header">
           <h2>생산 실적</h2>
           <div class="header-actions">
+            <button class="btn btn-primary" @click="openCreateModal">
+              <span>➕</span>
+              실적 등록
+            </button>
             <button class="btn btn-secondary">
               <span>📊</span>
               실적 분석
@@ -120,6 +124,18 @@
         </template>
       </DataTable>
     </Card>
+
+    <ProductionResultDetailModal
+      v-model="showDetailModal"
+      :production-result="viewingResult"
+      @edit="handleDetailEdit"
+    />
+
+    <ProductionResultFormModal
+      v-model="showFormModal"
+      :production-result="editingResult"
+      @submit="handleFormSubmit"
+    />
   </div>
 </template>
 
@@ -127,6 +143,8 @@
 import { ref, onMounted, computed } from 'vue'
 import Card from '@/components/common/Card.vue'
 import DataTable from '@/components/common/DataTable.vue'
+import ProductionResultDetailModal from '@/components/productionresult/ProductionResultDetailModal.vue'
+import ProductionResultFormModal from '@/components/productionresult/ProductionResultFormModal.vue'
 import { ApiService } from '@/services/api'
 import type { ProductionResult } from '@/types'
 
@@ -135,6 +153,11 @@ const searchQuery = ref('')
 const startDate = ref('')
 const endDate = ref('')
 const equipmentFilter = ref('')
+
+const showDetailModal = ref(false)
+const showFormModal = ref(false)
+const viewingResult = ref<ProductionResult | null>(null)
+const editingResult = ref<ProductionResult | null>(null)
 
 const columns = [
   { key: 'resultNumber', label: '실적번호' },
@@ -222,15 +245,52 @@ const searchResults = () => {
 }
 
 const viewDetails = (result: ProductionResult) => {
-  console.log('실적 상세:', result)
+  viewingResult.value = result
+  showDetailModal.value = true
 }
 
 const editResult = (result: ProductionResult) => {
-  console.log('실적 수정:', result)
+  editingResult.value = result
+  showFormModal.value = true
+}
+
+const handleDetailEdit = (result: ProductionResult) => {
+  showDetailModal.value = false
+  editingResult.value = result
+  showFormModal.value = true
+}
+
+const handleFormSubmit = (formData: Partial<ProductionResult>) => {
+  if (editingResult.value) {
+    const index = productionResults.value.findIndex(pr => pr.id === editingResult.value!.id)
+    if (index !== -1) {
+      productionResults.value[index] = { ...productionResults.value[index], ...formData }
+      console.log('생산실적 수정됨:', formData)
+    }
+  } else {
+    const newResult: ProductionResult = {
+      id: Date.now().toString(),
+      resultNumber: formData.resultNumber!,
+      orderNumber: formData.orderNumber!,
+      productName: formData.productName!,
+      productionQuantity: formData.productionQuantity!,
+      defectQuantity: formData.defectQuantity!,
+      yieldRate: formData.yieldRate!,
+      equipment: formData.equipment!,
+      workDate: formData.workDate!
+    }
+    productionResults.value.push(newResult)
+    console.log('새 생산실적 등록됨:', newResult)
+  }
 }
 
 const printReport = (result: ProductionResult) => {
   console.log('실적 출력:', result)
+}
+
+const openCreateModal = () => {
+  editingResult.value = null
+  showFormModal.value = true
 }
 
 const loadProductionResults = async () => {

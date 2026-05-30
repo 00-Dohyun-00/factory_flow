@@ -4,7 +4,7 @@
       <template #header>
         <div class="page-header">
           <h2>설비 관리</h2>
-          <button class="btn btn-primary">
+          <button class="btn btn-primary" @click="openCreateModal">
             <span>➕</span>
             설비 등록
           </button>
@@ -74,6 +74,18 @@
         </template>
       </DataTable>
     </Card>
+
+    <EquipmentFormModal
+      v-model="showFormModal"
+      :equipment="editingEquipment"
+      @submit="handleFormSubmit"
+    />
+
+    <EquipmentDetailModal
+      v-model="showDetailModal"
+      :equipment="viewingEquipment"
+      @edit="handleDetailEdit"
+    />
   </div>
 </template>
 
@@ -82,12 +94,19 @@ import { ref, onMounted, computed } from 'vue'
 import Card from '@/components/common/Card.vue'
 import Badge from '@/components/common/Badge.vue'
 import DataTable from '@/components/common/DataTable.vue'
+import EquipmentFormModal from '@/components/equipment/EquipmentFormModal.vue'
+import EquipmentDetailModal from '@/components/equipment/EquipmentDetailModal.vue'
 import { ApiService } from '@/services/api'
 import type { Equipment } from '@/types'
 
 const equipmentList = ref<Equipment[]>([])
 const searchQuery = ref('')
 const statusFilter = ref('')
+
+const showFormModal = ref(false)
+const showDetailModal = ref(false)
+const editingEquipment = ref<Equipment | null>(null)
+const viewingEquipment = ref<Equipment | null>(null)
 
 const columns = [
   { key: 'code', label: '설비코드' },
@@ -152,12 +171,48 @@ const searchEquipment = () => {
   console.log('검색 실행:', { searchQuery: searchQuery.value, statusFilter: statusFilter.value })
 }
 
+const openCreateModal = () => {
+  editingEquipment.value = null
+  showFormModal.value = true
+}
+
 const editEquipment = (equipment: Equipment) => {
-  console.log('설비 수정:', equipment)
+  editingEquipment.value = equipment
+  showFormModal.value = true
 }
 
 const viewEquipment = (equipment: Equipment) => {
-  console.log('설비 상세:', equipment)
+  viewingEquipment.value = equipment
+  showDetailModal.value = true
+}
+
+const handleDetailEdit = (equipment: Equipment) => {
+  showDetailModal.value = false
+  editingEquipment.value = equipment
+  showFormModal.value = true
+}
+
+const handleFormSubmit = (formData: Partial<Equipment>) => {
+  if (editingEquipment.value) {
+    const index = equipmentList.value.findIndex(eq => eq.id === editingEquipment.value!.id)
+    if (index !== -1) {
+      equipmentList.value[index] = { ...equipmentList.value[index], ...formData }
+      console.log('설비 수정됨:', formData)
+    }
+  } else {
+    const newEquipment: Equipment = {
+      id: formData.id!,
+      code: formData.code!,
+      name: formData.name!,
+      location: formData.location!,
+      status: formData.status!,
+      manager: formData.manager!,
+      lastCheckDate: formData.lastCheckDate!,
+      registeredDate: formData.registeredDate!
+    }
+    equipmentList.value.push(newEquipment)
+    console.log('새 설비 등록됨:', newEquipment)
+  }
 }
 
 const loadEquipmentList = async () => {

@@ -4,7 +4,7 @@
       <template #header>
         <div class="page-header">
           <h2>작업 지시</h2>
-          <button class="btn btn-primary">
+          <button class="btn btn-primary" @click="openCreateModal">
             <span>➕</span>
             작업 등록
           </button>
@@ -127,6 +127,23 @@
         </template>
       </DataTable>
     </Card>
+
+    <!-- 작업지시 상세 모달 -->
+    <WorkOrderDetailModal
+      v-model="showDetailModal"
+      :work-order="viewingWorkOrder"
+      @edit="handleDetailEdit"
+      @start="handleDetailStart"
+      @pause="handleDetailPause"
+      @complete="handleDetailComplete"
+    />
+
+    <!-- 작업지시 등록/수정 모달 -->
+    <WorkOrderFormModal
+      v-model="showFormModal"
+      :work-order="editingWorkOrder"
+      @submit="handleFormSubmit"
+    />
   </div>
 </template>
 
@@ -135,6 +152,8 @@ import { ref, onMounted, computed } from 'vue'
 import Card from '@/components/common/Card.vue'
 import Badge from '@/components/common/Badge.vue'
 import DataTable from '@/components/common/DataTable.vue'
+import WorkOrderDetailModal from '@/components/workorder/WorkOrderDetailModal.vue'
+import WorkOrderFormModal from '@/components/workorder/WorkOrderFormModal.vue'
 import { ApiService } from '@/services/api'
 import type { WorkOrder } from '@/types'
 
@@ -142,6 +161,11 @@ const workOrderList = ref<WorkOrder[]>([])
 const searchQuery = ref('')
 const statusFilter = ref('')
 const equipmentFilter = ref('')
+
+const showDetailModal = ref(false)
+const showFormModal = ref(false)
+const editingWorkOrder = ref<WorkOrder | null>(null)
+const viewingWorkOrder = ref<WorkOrder | null>(null)
 
 const columns = [
   { key: 'orderNumber', label: '작업지시번호' },
@@ -234,24 +258,96 @@ const searchWorkOrders = () => {
   })
 }
 
+const openCreateModal = () => {
+  editingWorkOrder.value = null
+  showFormModal.value = true
+}
+
 const startWork = (workOrder: WorkOrder) => {
+  updateWorkOrderStatus(workOrder, 'in_progress')
   console.log('작업 시작:', workOrder)
 }
 
 const pauseWork = (workOrder: WorkOrder) => {
+  updateWorkOrderStatus(workOrder, 'waiting')
   console.log('작업 일시정지:', workOrder)
 }
 
 const completeWork = (workOrder: WorkOrder) => {
+  const index = workOrderList.value.findIndex(wo => wo.id === workOrder.id)
+  if (index !== -1) {
+    workOrderList.value[index] = {
+      ...workOrderList.value[index],
+      status: 'completed',
+      completedQuantity: workOrder.targetQuantity
+    }
+  }
   console.log('작업 완료:', workOrder)
 }
 
 const editWork = (workOrder: WorkOrder) => {
-  console.log('작업 수정:', workOrder)
+  editingWorkOrder.value = workOrder
+  showFormModal.value = true
 }
 
 const viewWork = (workOrder: WorkOrder) => {
-  console.log('작업 상세:', workOrder)
+  viewingWorkOrder.value = workOrder
+  showDetailModal.value = true
+}
+
+const handleDetailEdit = (workOrder: WorkOrder) => {
+  showDetailModal.value = false
+  editingWorkOrder.value = workOrder
+  showFormModal.value = true
+}
+
+const handleDetailStart = (workOrder: WorkOrder) => {
+  showDetailModal.value = false
+  startWork(workOrder)
+}
+
+const handleDetailPause = (workOrder: WorkOrder) => {
+  showDetailModal.value = false
+  pauseWork(workOrder)
+}
+
+const handleDetailComplete = (workOrder: WorkOrder) => {
+  showDetailModal.value = false
+  completeWork(workOrder)
+}
+
+const handleFormSubmit = (formData: Partial<WorkOrder>) => {
+  if (editingWorkOrder.value) {
+    const index = workOrderList.value.findIndex(wo => wo.id === editingWorkOrder.value!.id)
+    if (index !== -1) {
+      workOrderList.value[index] = { ...workOrderList.value[index], ...formData }
+      console.log('작업지시 수정됨:', formData)
+    }
+  } else {
+    const newWorkOrder: WorkOrder = {
+      id: formData.id!,
+      orderNumber: formData.orderNumber!,
+      productName: formData.productName!,
+      targetQuantity: formData.targetQuantity!,
+      completedQuantity: formData.completedQuantity!,
+      equipment: formData.equipment!,
+      status: formData.status!,
+      startDate: formData.startDate!,
+      dueDate: formData.dueDate!
+    }
+    workOrderList.value.push(newWorkOrder)
+    console.log('새 작업지시 등록됨:', newWorkOrder)
+  }
+}
+
+const updateWorkOrderStatus = (workOrder: WorkOrder, status: WorkOrder['status']) => {
+  const index = workOrderList.value.findIndex(wo => wo.id === workOrder.id)
+  if (index !== -1) {
+    workOrderList.value[index] = {
+      ...workOrderList.value[index],
+      status
+    }
+  }
 }
 
 const loadWorkOrderList = async () => {

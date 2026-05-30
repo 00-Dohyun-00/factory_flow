@@ -13,7 +13,7 @@
               <span>📤</span>
               출고
             </button>
-            <button class="btn btn-primary">
+            <button class="btn btn-primary" @click="openCreateModal">
               <span>➕</span>
               자재 등록
             </button>
@@ -89,13 +89,13 @@
         <template #actions="{ row }">
           <div class="action-buttons">
             <button 
-              class="btn btn-sm btn-secondary" 
+              class="btn btn-sm btn-success" 
               @click="adjustStock(row, 'in')"
             >
               입고
             </button>
             <button 
-              class="btn btn-sm btn-secondary" 
+              class="btn btn-sm btn-warning" 
               @click="adjustStock(row, 'out')"
             >
               출고
@@ -103,10 +103,37 @@
             <button class="btn btn-sm btn-secondary" @click="editMaterial(row)">
               수정
             </button>
+            <button class="btn btn-sm btn-secondary" @click="viewMaterial(row)">
+              상세
+            </button>
           </div>
         </template>
       </DataTable>
     </Card>
+
+    <!-- 자재 상세 모달 -->
+    <MaterialDetailModal
+      v-model="showDetailModal"
+      :material="viewingMaterial"
+      @edit="handleDetailEdit"
+      @stock-in="handleDetailStockIn"
+      @stock-out="handleDetailStockOut"
+    />
+
+    <!-- 자재 등록/수정 모달 -->
+    <MaterialFormModal
+      v-model="showFormModal"
+      :material="editingMaterial"
+      @submit="handleFormSubmit"
+    />
+
+    <!-- 재고 입고/출고 모달 -->
+    <StockAdjustmentModal
+      v-model="showStockModal"
+      :material="viewingMaterial"
+      :type="stockAdjustmentType"
+      @submit="handleStockAdjustment"
+    />
   </div>
 </template>
 
@@ -115,6 +142,9 @@ import { ref, onMounted, computed } from 'vue'
 import Card from '@/components/common/Card.vue'
 import Badge from '@/components/common/Badge.vue'
 import DataTable from '@/components/common/DataTable.vue'
+import MaterialDetailModal from '@/components/inventory/MaterialDetailModal.vue'
+import MaterialFormModal from '@/components/inventory/MaterialFormModal.vue'
+import StockAdjustmentModal from '@/components/inventory/StockAdjustmentModal.vue'
 import { ApiService } from '@/services/api'
 import type { Material } from '@/types'
 
@@ -122,6 +152,13 @@ const materialList = ref<Material[]>([])
 const searchQuery = ref('')
 const categoryFilter = ref('')
 const statusFilter = ref('')
+
+const showDetailModal = ref(false)
+const showFormModal = ref(false)
+const showStockModal = ref(false)
+const editingMaterial = ref<Material | null>(null)
+const viewingMaterial = ref<Material | null>(null)
+const stockAdjustmentType = ref<'in' | 'out'>('in')
 
 const columns = [
   { key: 'code', label: '자재코드' },
@@ -201,12 +238,98 @@ const searchMaterials = () => {
   })
 }
 
+const openCreateModal = () => {
+  editingMaterial.value = null
+  showFormModal.value = true
+}
+
 const adjustStock = (material: Material, type: 'in' | 'out') => {
-  console.log('재고 조정:', { material, type })
+  viewingMaterial.value = material
+  stockAdjustmentType.value = type
+  showStockModal.value = true
 }
 
 const editMaterial = (material: Material) => {
-  console.log('자재 수정:', material)
+  editingMaterial.value = material
+  showFormModal.value = true
+}
+
+const viewMaterial = (material: Material) => {
+  viewingMaterial.value = material
+  showDetailModal.value = true
+}
+
+const handleDetailEdit = (material: Material) => {
+  showDetailModal.value = false
+  editingMaterial.value = material
+  showFormModal.value = true
+}
+
+const handleDetailStockIn = (material: Material) => {
+  showDetailModal.value = false
+  adjustStock(material, 'in')
+}
+
+const handleDetailStockOut = (material: Material) => {
+  showDetailModal.value = false
+  adjustStock(material, 'out')
+}
+
+const handleFormSubmit = (formData: Partial<Material>) => {
+  if (editingMaterial.value) {
+    const index = materialList.value.findIndex(mat => mat.id === editingMaterial.value!.id)
+    if (index !== -1) {
+      materialList.value[index] = { ...materialList.value[index], ...formData }
+      console.log('자재 수정됨:', formData)
+    }
+  } else {
+    const newMaterial: Material = {
+      id: formData.id!,
+      code: formData.code!,
+      name: formData.name!,
+      category: formData.category!,
+      currentStock: formData.currentStock!,
+      safetyStock: formData.safetyStock!,
+      unit: formData.unit!,
+      status: formData.status!,
+      lastMovementDate: formData.lastMovementDate!
+    }
+    materialList.value.push(newMaterial)
+    console.log('새 자재 등록됨:', newMaterial)
+  }
+}
+
+const handleStockAdjustment = (data: any) => {
+  const material = data.material
+  const index = materialList.value.findIndex(mat => mat.id === material.id)
+  
+  if (index !== -1) {
+    const newStock = data.type === 'in' 
+      ? material.currentStock + data.quantity 
+      : material.currentStock - data.quantity
+    
+    const newStatus = getStatus(newStock, material.safetyStock)
+    
+    materialList.value[index] = {
+      ...materialList.value[index],
+      currentStock: newStock,
+      status: newStatus,
+      lastMovementDate: new Date().toISOString().split('T')[0]
+    }
+    
+    console.log(`재고 ${data.type === 'in' ? '입고' : '출고'} 처리됨:`, {
+      material: material.name,
+      quantity: data.quantity,
+      newStock
+    })
+  }
+}
+
+const getStatus = (currentStock: number, safetyStock: number): Material['status'] => {
+  if (currentStock === 0) return 'critical'
+  if (currentStock <= safetyStock * 0.5) return 'critical'
+  if (currentStock <= safetyStock) return 'low'
+  return 'normal'
 }
 
 const loadMaterialList = async () => {
@@ -299,5 +422,23 @@ onMounted(() => {
 .stock-critical {
   color: var(--error-color);
   font-weight: 700;
+}
+
+.btn-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #059669;
+}
+
+.btn-warning {
+  background-color: var(--warning-color);
+  color: white;
+}
+
+.btn-warning:hover {
+  background-color: #d97706;
 }
 </style>
