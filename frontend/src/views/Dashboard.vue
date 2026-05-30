@@ -163,8 +163,8 @@ const equipmentStatusCounts = computed(() => {
     error: 0,
   };
 
-  equipmentList.value.forEach((equipment) => {
-    counts[equipment.status]++;
+  equipmentList.value.forEach((equipment: Equipment) => {
+    counts[equipment.status as keyof typeof counts]++;
   });
 
   return counts;
