@@ -7,11 +7,11 @@ import java.util.List;
 
 @Component
 public class
-DataInitializer implements CommandLineRunner {
+EquipmentDataInitializer implements CommandLineRunner {
 
     private final EquipmentRepository equipmentRepository;
 
-    public DataInitializer(EquipmentRepository equipmentRepository) {
+    public EquipmentDataInitializer(EquipmentRepository equipmentRepository) {
         this.equipmentRepository = equipmentRepository;
     }
 
