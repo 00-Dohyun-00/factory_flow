@@ -1,6 +1,8 @@
 package com.factoryflow.backend.productionresult;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -33,6 +35,12 @@ public class ProductionResultController {
 
     @DeleteMapping("/{id}")
     public void deleteProductionResult(@PathVariable String id) {
+
+        if (!productionResultRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 생산실적을 찾을 수 없습니다: " + id);
+        }
+
+
         productionResultRepository.deleteById(id);
     }
 }

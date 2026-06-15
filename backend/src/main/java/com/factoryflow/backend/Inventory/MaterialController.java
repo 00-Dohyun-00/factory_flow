@@ -1,7 +1,8 @@
 package com.factoryflow.backend.Inventory;
 
-import com.factoryflow.backend.equipment.Equipment;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -35,6 +36,11 @@ public class MaterialController {
 
     @DeleteMapping("/{id}")
     public void deleteMaterial(@PathVariable String id) {
+
+        if (!materialRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 자재를 찾을 수 없습니다: " + id);
+        }
+
         materialRepository.deleteById(id);
     }
 }
