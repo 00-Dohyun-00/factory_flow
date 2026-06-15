@@ -303,12 +303,6 @@ const loadProductionResults = async () => {
 
 onMounted(() => {
   loadProductionResults()
-  
-  const today = new Date()
-  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-  
-  startDate.value = weekAgo.toISOString().split('T')[0]
-  endDate.value = today.toISOString().split('T')[0]
 })
 </script>
 

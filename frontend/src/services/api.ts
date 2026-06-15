@@ -1,52 +1,48 @@
 import type { Equipment, Material, WorkOrder, ProductionResult, DashboardKPI } from '@/types'
-import { 
-  mockEquipmentData, 
-  mockMaterialData, 
-  mockWorkOrderData, 
-  mockProductionResultData, 
-  mockDashboardKPI 
-} from './mockData'
+import { mockDashboardKPI } from './mockData'
 
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+const API_URL = import.meta.env.VITE_API_URL
 
 export class ApiService {
   static async getDashboardKPI(): Promise<DashboardKPI> {
-    await delay(300)
     return mockDashboardKPI
   }
 
   static async getEquipmentList(): Promise<Equipment[]> {
-    await delay(500)
-    return mockEquipmentData
+    const res = await fetch(`${API_URL}/api/equipment`)
+    return res.json()
   }
 
   static async getMaterialList(): Promise<Material[]> {
-    await delay(500)
-    return mockMaterialData
+    const res = await fetch(`${API_URL}/api/materials`)
+    return res.json()
   }
 
   static async getWorkOrderList(): Promise<WorkOrder[]> {
-    await delay(500)
-    return mockWorkOrderData
+    const res = await fetch(`${API_URL}/api/workorders`)
+    return res.json()
   }
 
   static async getProductionResultList(): Promise<ProductionResult[]> {
-    await delay(500)
-    return mockProductionResultData
+    const res = await fetch(`${API_URL}/api/production-results`)
+    return res.json()
   }
 
   static async getRecentWorkOrders(limit: number = 5): Promise<WorkOrder[]> {
-    await delay(300)
-    return mockWorkOrderData.slice(0, limit)
+    const res = await fetch(`${API_URL}/api/workorders`)
+    const workOrders: WorkOrder[] = await res.json()
+    return workOrders.slice(0, limit)
   }
 
   static async getRecentProductionResults(limit: number = 5): Promise<ProductionResult[]> {
-    await delay(300)
-    return mockProductionResultData.slice(0, limit)
+    const res = await fetch(`${API_URL}/api/production-results`)
+    const results: ProductionResult[] = await res.json()
+    return results.slice(0, limit)
   }
 
   static async getLowStockMaterials(): Promise<Material[]> {
-    await delay(300)
-    return mockMaterialData.filter(material => material.status === 'low' || material.status === 'critical')
+    const res = await fetch(`${API_URL}/api/materials`)
+    const materials: Material[] = await res.json()
+    return materials.filter(material => material.status === 'low' || material.status === 'critical')
   }
 }
