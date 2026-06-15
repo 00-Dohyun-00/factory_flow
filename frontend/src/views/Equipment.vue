@@ -192,27 +192,13 @@ const handleDetailEdit = (equipment: Equipment) => {
   showFormModal.value = true
 }
 
-const handleFormSubmit = (formData: Partial<Equipment>) => {
+const handleFormSubmit = async (formData: Partial<Equipment>) => {
   if (editingEquipment.value) {
-    const index = equipmentList.value.findIndex(eq => eq.id === editingEquipment.value!.id)
-    if (index !== -1) {
-      equipmentList.value[index] = { ...equipmentList.value[index], ...formData }
-      console.log('설비 수정됨:', formData)
-    }
+    await ApiService.updateEquipment(editingEquipment.value.id, formData as Equipment)
   } else {
-    const newEquipment: Equipment = {
-      id: formData.id!,
-      code: formData.code!,
-      name: formData.name!,
-      location: formData.location!,
-      status: formData.status!,
-      manager: formData.manager!,
-      lastCheckDate: formData.lastCheckDate!,
-      registeredDate: formData.registeredDate!
-    }
-    equipmentList.value.push(newEquipment)
-    console.log('새 설비 등록됨:', newEquipment)
+    await ApiService.createEquipment(formData as Equipment)
   }
+  await loadEquipmentList()
 }
 
 const loadEquipmentList = async () => {

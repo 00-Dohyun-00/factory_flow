@@ -273,16 +273,13 @@ const pauseWork = (workOrder: WorkOrder) => {
   console.log('작업 일시정지:', workOrder)
 }
 
-const completeWork = (workOrder: WorkOrder) => {
-  const index = workOrderList.value.findIndex(wo => wo.id === workOrder.id)
-  if (index !== -1) {
-    workOrderList.value[index] = {
-      ...workOrderList.value[index],
-      status: 'completed',
-      completedQuantity: workOrder.targetQuantity
-    }
-  }
-  console.log('작업 완료:', workOrder)
+const completeWork = async (workOrder: WorkOrder) => {
+  await ApiService.updateWorkOrder(workOrder.id, {
+    ...workOrder,
+    status: 'completed',
+    completedQuantity: workOrder.targetQuantity
+  })
+  await loadWorkOrderList()
 }
 
 const editWork = (workOrder: WorkOrder) => {
@@ -316,38 +313,18 @@ const handleDetailComplete = (workOrder: WorkOrder) => {
   completeWork(workOrder)
 }
 
-const handleFormSubmit = (formData: Partial<WorkOrder>) => {
+const handleFormSubmit = async (formData: Partial<WorkOrder>) => {
   if (editingWorkOrder.value) {
-    const index = workOrderList.value.findIndex(wo => wo.id === editingWorkOrder.value!.id)
-    if (index !== -1) {
-      workOrderList.value[index] = { ...workOrderList.value[index], ...formData }
-      console.log('작업지시 수정됨:', formData)
-    }
+    await ApiService.updateWorkOrder(editingWorkOrder.value.id, formData as WorkOrder)
   } else {
-    const newWorkOrder: WorkOrder = {
-      id: formData.id!,
-      orderNumber: formData.orderNumber!,
-      productName: formData.productName!,
-      targetQuantity: formData.targetQuantity!,
-      completedQuantity: formData.completedQuantity!,
-      equipment: formData.equipment!,
-      status: formData.status!,
-      startDate: formData.startDate!,
-      dueDate: formData.dueDate!
-    }
-    workOrderList.value.push(newWorkOrder)
-    console.log('새 작업지시 등록됨:', newWorkOrder)
+    await ApiService.createWorkOrder(formData as WorkOrder)
   }
+  await loadWorkOrderList()
 }
 
-const updateWorkOrderStatus = (workOrder: WorkOrder, status: WorkOrder['status']) => {
-  const index = workOrderList.value.findIndex(wo => wo.id === workOrder.id)
-  if (index !== -1) {
-    workOrderList.value[index] = {
-      ...workOrderList.value[index],
-      status
-    }
-  }
+const updateWorkOrderStatus = async (workOrder: WorkOrder, status: WorkOrder['status']) => {
+  await ApiService.updateWorkOrder(workOrder.id, { ...workOrder, status })
+  await loadWorkOrderList()
 }
 
 const loadWorkOrderList = async () => {

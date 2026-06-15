@@ -275,54 +275,30 @@ const handleDetailStockOut = (material: Material) => {
   adjustStock(material, 'out')
 }
 
-const handleFormSubmit = (formData: Partial<Material>) => {
+const handleFormSubmit = async (formData: Partial<Material>) => {
   if (editingMaterial.value) {
-    const index = materialList.value.findIndex(mat => mat.id === editingMaterial.value!.id)
-    if (index !== -1) {
-      materialList.value[index] = { ...materialList.value[index], ...formData }
-      console.log('자재 수정됨:', formData)
-    }
+    await ApiService.updateMaterial(editingMaterial.value.id, formData as Material)
   } else {
-    const newMaterial: Material = {
-      id: formData.id!,
-      code: formData.code!,
-      name: formData.name!,
-      category: formData.category!,
-      currentStock: formData.currentStock!,
-      safetyStock: formData.safetyStock!,
-      unit: formData.unit!,
-      status: formData.status!,
-      lastMovementDate: formData.lastMovementDate!
-    }
-    materialList.value.push(newMaterial)
-    console.log('새 자재 등록됨:', newMaterial)
+    await ApiService.createMaterial(formData as Material)
   }
+  await loadMaterialList()
 }
 
-const handleStockAdjustment = (data: any) => {
+const handleStockAdjustment = async (data: any) => {
   const material = data.material
-  const index = materialList.value.findIndex(mat => mat.id === material.id)
-  
-  if (index !== -1) {
-    const newStock = data.type === 'in' 
-      ? material.currentStock + data.quantity 
-      : material.currentStock - data.quantity
-    
-    const newStatus = getStatus(newStock, material.safetyStock)
-    
-    materialList.value[index] = {
-      ...materialList.value[index],
-      currentStock: newStock,
-      status: newStatus,
-      lastMovementDate: new Date().toISOString().split('T')[0]
-    }
-    
-    console.log(`재고 ${data.type === 'in' ? '입고' : '출고'} 처리됨:`, {
-      material: material.name,
-      quantity: data.quantity,
-      newStock
-    })
-  }
+  const newStock = data.type === 'in'
+    ? material.currentStock + data.quantity
+    : material.currentStock - data.quantity
+
+  const newStatus = getStatus(newStock, material.safetyStock)
+
+  await ApiService.updateMaterial(material.id, {
+    ...material,
+    currentStock: newStock,
+    status: newStatus,
+    lastMovementDate: new Date().toISOString().split('T')[0]
+  })
+  await loadMaterialList()
 }
 
 const getStatus = (currentStock: number, safetyStock: number): Material['status'] => {

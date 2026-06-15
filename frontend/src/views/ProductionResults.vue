@@ -260,28 +260,13 @@ const handleDetailEdit = (result: ProductionResult) => {
   showFormModal.value = true
 }
 
-const handleFormSubmit = (formData: Partial<ProductionResult>) => {
+const handleFormSubmit = async (formData: Partial<ProductionResult>) => {
   if (editingResult.value) {
-    const index = productionResults.value.findIndex(pr => pr.id === editingResult.value!.id)
-    if (index !== -1) {
-      productionResults.value[index] = { ...productionResults.value[index], ...formData }
-      console.log('생산실적 수정됨:', formData)
-    }
+    await ApiService.updateProductionResult(editingResult.value.id, formData as ProductionResult)
   } else {
-    const newResult: ProductionResult = {
-      id: Date.now().toString(),
-      resultNumber: formData.resultNumber!,
-      orderNumber: formData.orderNumber!,
-      productName: formData.productName!,
-      productionQuantity: formData.productionQuantity!,
-      defectQuantity: formData.defectQuantity!,
-      yieldRate: formData.yieldRate!,
-      equipment: formData.equipment!,
-      workDate: formData.workDate!
-    }
-    productionResults.value.push(newResult)
-    console.log('새 생산실적 등록됨:', newResult)
+    await ApiService.createProductionResult(formData as ProductionResult)
   }
+  await loadProductionResults()
 }
 
 const printReport = (result: ProductionResult) => {
