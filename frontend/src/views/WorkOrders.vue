@@ -5,7 +5,7 @@
         <div class="page-header">
           <h2>작업 지시</h2>
           <button class="btn btn-primary" @click="openCreateModal">
-            <span>➕</span>
+            <Plus :size="16" />
             작업 등록
           </button>
         </div>
@@ -117,11 +117,10 @@
             >
               완료
             </button>
-            <button class="btn btn-sm btn-secondary" @click="editWork(row)">
-              수정
-            </button>
-            <button class="btn btn-sm btn-secondary" @click="viewWork(row)">
-              상세
+            <button class="btn btn-sm btn-secondary" @click="editWork(row)">수정</button>
+            <button class="btn btn-sm btn-secondary" @click="viewWork(row)">상세</button>
+            <button class="btn btn-sm btn-danger" @click="deleteWorkOrder(row)">
+              <Trash2 :size="14" />
             </button>
           </div>
         </template>
@@ -149,6 +148,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { Plus, Trash2 } from '@lucide/vue'
 import Card from '@/components/common/Card.vue'
 import Badge from '@/components/common/Badge.vue'
 import DataTable from '@/components/common/DataTable.vue'
@@ -324,6 +324,12 @@ const handleFormSubmit = async (formData: Partial<WorkOrder>) => {
 
 const updateWorkOrderStatus = async (workOrder: WorkOrder, status: WorkOrder['status']) => {
   await ApiService.updateWorkOrder(workOrder.id, { ...workOrder, status })
+  await loadWorkOrderList()
+}
+
+const deleteWorkOrder = async (workOrder: WorkOrder) => {
+  if (!confirm(`"${workOrder.orderNumber}"을 삭제하시겠습니까?`)) return
+  await ApiService.deleteWorkOrder(workOrder.id)
   await loadWorkOrderList()
 }
 

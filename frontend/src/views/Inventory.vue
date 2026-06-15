@@ -14,7 +14,7 @@
               출고
             </button>
             <button class="btn btn-primary" @click="openCreateModal">
-              <span>➕</span>
+              <Plus :size="16" />
               자재 등록
             </button>
           </div>
@@ -100,11 +100,10 @@
             >
               출고
             </button>
-            <button class="btn btn-sm btn-secondary" @click="editMaterial(row)">
-              수정
-            </button>
-            <button class="btn btn-sm btn-secondary" @click="viewMaterial(row)">
-              상세
+            <button class="btn btn-sm btn-secondary" @click="editMaterial(row)">수정</button>
+            <button class="btn btn-sm btn-secondary" @click="viewMaterial(row)">상세</button>
+            <button class="btn btn-sm btn-danger" @click="deleteMaterial(row)">
+              <Trash2 :size="14" />
             </button>
           </div>
         </template>
@@ -139,6 +138,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { Plus, Trash2 } from '@lucide/vue'
 import Card from '@/components/common/Card.vue'
 import Badge from '@/components/common/Badge.vue'
 import DataTable from '@/components/common/DataTable.vue'
@@ -306,6 +306,12 @@ const getStatus = (currentStock: number, safetyStock: number): Material['status'
   if (currentStock <= safetyStock * 0.5) return 'critical'
   if (currentStock <= safetyStock) return 'low'
   return 'normal'
+}
+
+const deleteMaterial = async (material: Material) => {
+  if (!confirm(`"${material.name}"을 삭제하시겠습니까?`)) return
+  await ApiService.deleteMaterial(material.id)
+  await loadMaterialList()
 }
 
 const loadMaterialList = async () => {

@@ -67,6 +67,24 @@ body {
   font-size: 0.75rem;
 }
 
+.btn-danger {
+  background-color: var(--error-color);
+  color: white;
+  border-color: var(--error-color);
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+.btn svg {
+  margin-right: 0.25rem;
+}
+
+.btn-sm svg {
+  margin-right: 0;
+}
+
 .card {
   background-color: var(--bg-primary);
   border-radius: 0.5rem;

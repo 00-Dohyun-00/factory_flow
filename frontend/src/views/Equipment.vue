@@ -5,7 +5,7 @@
         <div class="page-header">
           <h2>설비 관리</h2>
           <button class="btn btn-primary" @click="openCreateModal">
-            <span>➕</span>
+            <Plus :size="16" />
             설비 등록
           </button>
         </div>
@@ -64,11 +64,10 @@
 
         <template #actions="{ row }">
           <div class="action-buttons">
-            <button class="btn btn-sm btn-secondary" @click="editEquipment(row)">
-              수정
-            </button>
-            <button class="btn btn-sm btn-secondary" @click="viewEquipment(row)">
-              상세
+            <button class="btn btn-sm btn-secondary" @click="editEquipment(row)">수정</button>
+            <button class="btn btn-sm btn-secondary" @click="viewEquipment(row)">상세</button>
+            <button class="btn btn-sm btn-danger" @click="deleteEquipment(row)">
+              <Trash2 :size="14" />
             </button>
           </div>
         </template>
@@ -91,6 +90,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { Plus, Trash2 } from '@lucide/vue'
 import Card from '@/components/common/Card.vue'
 import Badge from '@/components/common/Badge.vue'
 import DataTable from '@/components/common/DataTable.vue'
@@ -198,6 +198,12 @@ const handleFormSubmit = async (formData: Partial<Equipment>) => {
   } else {
     await ApiService.createEquipment(formData as Equipment)
   }
+  await loadEquipmentList()
+}
+
+const deleteEquipment = async (equipment: Equipment) => {
+  if (!confirm(`"${equipment.name}"을 삭제하시겠습니까?`)) return
+  await ApiService.deleteEquipment(equipment.id)
   await loadEquipmentList()
 }
 

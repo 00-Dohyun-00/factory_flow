@@ -6,7 +6,7 @@
           <h2>생산 실적</h2>
           <div class="header-actions">
             <button class="btn btn-primary" @click="openCreateModal">
-              <span>➕</span>
+              <Plus :size="16" />
               실적 등록
             </button>
             <button class="btn btn-secondary">
@@ -111,14 +111,10 @@
 
         <template #actions="{ row }">
           <div class="action-buttons">
-            <button class="btn btn-sm btn-secondary" @click="viewDetails(row)">
-              상세보기
-            </button>
-            <button class="btn btn-sm btn-secondary" @click="editResult(row)">
-              수정
-            </button>
-            <button class="btn btn-sm btn-secondary" @click="printReport(row)">
-              출력
+            <button class="btn btn-sm btn-secondary" @click="viewDetails(row)">상세보기</button>
+            <button class="btn btn-sm btn-secondary" @click="editResult(row)">수정</button>
+            <button class="btn btn-sm btn-danger" @click="deleteResult(row)">
+              <Trash2 :size="14" />
             </button>
           </div>
         </template>
@@ -141,6 +137,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { Plus, Trash2 } from '@lucide/vue'
 import Card from '@/components/common/Card.vue'
 import DataTable from '@/components/common/DataTable.vue'
 import ProductionResultDetailModal from '@/components/productionresult/ProductionResultDetailModal.vue'
@@ -276,6 +273,12 @@ const printReport = (result: ProductionResult) => {
 const openCreateModal = () => {
   editingResult.value = null
   showFormModal.value = true
+}
+
+const deleteResult = async (result: ProductionResult) => {
+  if (!confirm(`"${result.resultNumber}"을 삭제하시겠습니까?`)) return
+  await ApiService.deleteProductionResult(result.id)
+  await loadProductionResults()
 }
 
 const loadProductionResults = async () => {
