@@ -1,9 +1,7 @@
 package com.factoryflow.backend.Inventory;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.factoryflow.backend.equipment.Equipment;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,5 +19,22 @@ public class MaterialController {
     @GetMapping
     public List<Material> getMaterialList() {
         return materialRepository.findAll();
+    }
+
+
+    @PostMapping
+    public Material createMaterialList(@RequestBody Material material) {
+        return materialRepository.save(material);
+    }
+
+    @PutMapping("/{id}")
+    public Material updateMaterial(@PathVariable String id, @RequestBody Material material) {
+        material.setId(id);
+        return materialRepository.save(material);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteMaterial(@PathVariable String id) {
+        materialRepository.deleteById(id);
     }
 }

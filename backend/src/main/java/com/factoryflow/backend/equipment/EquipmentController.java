@@ -1,9 +1,6 @@
 package com.factoryflow.backend.equipment;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -22,4 +19,21 @@ public class EquipmentController {
     public List<Equipment> getEquipmentList() {
         return equipmentRepository.findAll();
     }
+
+    @PostMapping
+    public Equipment createEquipmentList(@RequestBody Equipment equipment) {
+        return equipmentRepository.save(equipment);
+    }
+
+    @PutMapping("/{id}")
+    public Equipment updateEquipment(@PathVariable String id, @RequestBody Equipment equipment) {
+        equipment.setId(id);
+        return equipmentRepository.save(equipment);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteEquipment(@PathVariable String id) {
+        equipmentRepository.deleteById(id);
+    }
+
 }

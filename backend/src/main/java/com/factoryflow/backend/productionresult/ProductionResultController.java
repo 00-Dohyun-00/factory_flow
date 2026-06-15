@@ -1,9 +1,6 @@
 package com.factoryflow.backend.productionresult;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -21,5 +18,21 @@ public class ProductionResultController {
     @GetMapping
     public List<ProductionResult> getProductionResultList() {
         return productionResultRepository.findAll();
+    }
+
+    @PostMapping
+    public ProductionResult createProductionResult(@RequestBody ProductionResult productionResult) {
+        return productionResultRepository.save(productionResult);
+    }
+
+    @PutMapping("/{id}")
+    public ProductionResult updateProductionResult(@PathVariable String id, @RequestBody ProductionResult productionResult) {
+        productionResult.setId(id);
+        return productionResultRepository.save(productionResult);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteProductionResult(@PathVariable String id) {
+        productionResultRepository.deleteById(id);
     }
 }
