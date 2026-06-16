@@ -2,9 +2,9 @@
   <div class="login-page">
     <div class="login-box">
       <h1 class="login-title">FactoryFlow</h1>
-      <p class="login-subtitle">스마트팩토리 관리 시스템</p>
+      <p class="login-subtitle">회원가입</p>
 
-      <form @submit.prevent="handleLogin" class="login-form">
+      <form @submit.prevent="handleRegister" class="login-form">
         <div class="form-group">
           <label class="form-label">아이디</label>
           <input
@@ -25,14 +25,26 @@
             required
           />
         </div>
+        <div class="form-group">
+          <label class="form-label">비밀번호 확인</label>
+          <input
+            v-model="passwordConfirm"
+            type="password"
+            class="input"
+            placeholder="비밀번호를 다시 입력하세요"
+            required
+          />
+        </div>
 
         <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+        <p v-if="successMessage" class="success-message">{{ successMessage }}</p>
 
         <button type="submit" class="btn btn-primary login-btn" :disabled="loading">
-          {{ loading ? '로그인 중...' : '로그인' }}
+          {{ loading ? '처리 중...' : '회원가입' }}
         </button>
-        <button type="button" class="btn btn-secondary login-btn" @click="router.push('/register')">
-          회원가입
+
+        <button type="button" class="btn btn-secondary login-btn" @click="router.push('/login')">
+          로그인으로 돌아가기
         </button>
       </form>
     </div>
@@ -42,20 +54,39 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { authService } from '@/services/auth'
 
 const router = useRouter()
 const username = ref('')
 const password = ref('')
+const passwordConfirm = ref('')
 const errorMessage = ref('')
+const successMessage = ref('')
 const loading = ref(false)
 
-const handleLogin = async () => {
+const handleRegister = async () => {
   errorMessage.value = ''
+  successMessage.value = ''
+
+  if (password.value !== passwordConfirm.value) {
+    errorMessage.value = '비밀번호가 일치하지 않습니다.'
+    return
+  }
+
   loading.value = true
   try {
-    await authService.login(username.value, password.value)
-    router.push('/')
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username.value, password: password.value })
+    })
+
+    if (!res.ok) {
+      const data = await res.json()
+      throw new Error(data.message || '회원가입에 실패했습니다.')
+    }
+
+    successMessage.value = '회원가입이 완료됐습니다. 로그인 해주세요.'
+    setTimeout(() => router.push('/login'), 1500)
   } catch (e: any) {
     errorMessage.value = e.message
   } finally {
@@ -123,6 +154,12 @@ const handleLogin = async () => {
 
 .error-message {
   color: var(--error-color);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.success-message {
+  color: var(--success-color);
   font-size: 0.875rem;
   text-align: center;
 }

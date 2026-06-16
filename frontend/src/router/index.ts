@@ -7,6 +7,7 @@ import WorkOrders from '@/views/WorkOrders.vue'
 import ProductionResults from '@/views/ProductionResults.vue'
 import Settings from '@/views/Settings.vue'
 import Login from '@/views/Login.vue'
+import Register from '@/views/Register.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -15,6 +16,12 @@ const router = createRouter({
       path: '/login',
       name: 'Login',
       component: Login,
+      meta: { public: true }
+    },
+    {
+      path: '/register',
+      name: 'Register',
+      component: Register,
       meta: { public: true }
     },
     {
