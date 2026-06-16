@@ -4,4 +4,5 @@ import com.factoryflow.backend.workorders.WorkOrders;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface WorkOrdersRepository extends JpaRepository<WorkOrders, String> {
+    long countByStatus(String status);
 }
