@@ -1,14 +1,22 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { authService } from '@/services/auth'
 import Dashboard from '@/views/Dashboard.vue'
 import Equipment from '@/views/Equipment.vue'
 import Inventory from '@/views/Inventory.vue'
 import WorkOrders from '@/views/WorkOrders.vue'
 import ProductionResults from '@/views/ProductionResults.vue'
 import Settings from '@/views/Settings.vue'
+import Login from '@/views/Login.vue'
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
+    {
+      path: '/login',
+      name: 'Login',
+      component: Login,
+      meta: { public: true }
+    },
     {
       path: '/',
       name: 'Dashboard',
@@ -40,6 +48,12 @@ const router = createRouter({
       component: Settings
     }
   ]
+})
+
+router.beforeEach((to) => {
+  if (!to.meta.public && !authService.isLoggedIn()) {
+    return '/login'
+  }
 })
 
 export default router

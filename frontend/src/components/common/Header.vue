@@ -3,8 +3,8 @@
     <div class="header-content">
       <h1 class="header-title">{{ title }}</h1>
       <div class="header-actions">
-        <span class="header-user">관리자</span>
         <div class="header-time">{{ currentTime }}</div>
+        <button class="btn btn-secondary btn-sm" @click="handleLogout">로그아웃</button>
       </div>
     </div>
   </header>
@@ -12,12 +12,21 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { authService } from '@/services/auth'
 
 interface Props {
   title: string
 }
 
 defineProps<Props>()
+
+const router = useRouter()
+
+const handleLogout = () => {
+  authService.logout()
+  router.push('/login')
+}
 
 const currentTime = ref('')
 let timeInterval: number | null = null
