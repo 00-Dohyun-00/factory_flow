@@ -29,6 +29,9 @@ public class ProductionResultController {
 
     @PutMapping("/{id}")
     public ProductionResult updateProductionResult(@PathVariable String id, @RequestBody ProductionResult productionResult) {
+        if (!productionResultRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 생산실적을 찾을 수 없습니다: " + id);
+        }
         productionResult.setId(id);
         return productionResultRepository.save(productionResult);
     }

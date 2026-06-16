@@ -32,6 +32,9 @@ public class WorkOrdersController {
 
     @PutMapping("/{id}")
     public WorkOrders updateWorkOrders(@PathVariable String id, @RequestBody WorkOrders workorders) {
+        if (!workordersRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 작업지시를 찾을 수 없습니다: " + id);
+        }
         workorders.setId(id);
         return workordersRepository.save(workorders);
     }

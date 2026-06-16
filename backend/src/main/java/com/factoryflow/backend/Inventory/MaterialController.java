@@ -30,6 +30,9 @@ public class MaterialController {
 
     @PutMapping("/{id}")
     public Material updateMaterial(@PathVariable String id, @RequestBody Material material) {
+        if (!materialRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 자재를 찾을 수 없습니다: " + id);
+        }
         material.setId(id);
         return materialRepository.save(material);
     }
