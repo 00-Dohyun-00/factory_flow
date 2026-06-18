@@ -19,7 +19,7 @@ public class EquipmentController {
 
     @GetMapping
     public List<Equipment> getEquipmentList() {
-        return equipmentRepository.findAll();
+        return equipmentRepository.findAllByOrderByCodeAsc();
     }
 
     @PostMapping

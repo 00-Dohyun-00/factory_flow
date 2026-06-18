@@ -14,4 +14,6 @@ public interface ProductionResultRepository extends JpaRepository<ProductionResu
 
     @Query("SELECT p.workDate, AVG(p.yieldRate) FROM ProductionResult p GROUP BY p.workDate ORDER BY p.workDate")
     List<Object[]> findDailyYieldRate();
+
+    List<ProductionResult> findAllByOrderByWorkDateDesc();
 }

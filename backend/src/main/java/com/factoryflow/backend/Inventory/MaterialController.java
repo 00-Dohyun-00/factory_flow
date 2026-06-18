@@ -19,7 +19,7 @@ public class MaterialController {
 
     @GetMapping
     public List<Material> getMaterialList() {
-        return materialRepository.findAll();
+        return materialRepository.findAllByOrderByCodeAsc();
     }
 
 

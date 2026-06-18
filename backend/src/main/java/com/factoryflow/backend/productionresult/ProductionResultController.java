@@ -19,7 +19,7 @@ public class ProductionResultController {
 
     @GetMapping
     public List<ProductionResult> getProductionResultList() {
-        return productionResultRepository.findAll();
+        return productionResultRepository.findAllByOrderByWorkDateDesc();
     }
 
     @PostMapping

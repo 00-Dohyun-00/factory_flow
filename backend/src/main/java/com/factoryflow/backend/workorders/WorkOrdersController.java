@@ -21,7 +21,7 @@ public class WorkOrdersController {
 
     @GetMapping
     public List<WorkOrders> getWorkOrdersList() {
-        return workordersRepository.findAll();
+        return workordersRepository.findAllByOrderByOrderNumberAsc();
     }
 
 
