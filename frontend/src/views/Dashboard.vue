@@ -83,6 +83,21 @@
       </Card>
     </div>
 
+    <div class="grid grid-cols-3 gap-6 mb-6">
+      <Card title="생산량 추이">
+        <div ref="productionChartRef" style="height: 250px"></div>
+      </Card>
+      <Card title="설비 상태 현황">
+        <div ref="equipmentChartRef" style="height: 250px"></div>
+      </Card>
+      <Card title="수율 추이">
+        <div ref="yieldChartRef" style="height: 250px"></div>
+      </Card>
+      <Card title="작업 지시 현황">
+        <div ref="workOrderRef" style="height: 250px"></div>
+      </Card>
+    </div>
+
     <div class="grid grid-cols-2 gap-6">
       <Card title="최근 작업 지시">
         <DataTable :columns="workOrderColumns" :data="recentWorkOrders">
@@ -117,6 +132,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import * as echarts from "echarts";
 import Card from "@/components/common/Card.vue";
 import Badge from "@/components/common/Badge.vue";
 import DataTable from "@/components/common/DataTable.vue";
@@ -135,6 +151,11 @@ const kpi = ref<DashboardKPI>({
   equipmentErrors: 0,
   lowStockItems: 0,
 });
+
+const productionChartRef = ref<HTMLElement | null>(null);
+const equipmentChartRef = ref<HTMLElement | null>(null);
+const yieldChartRef = ref<HTMLElement | null>(null);
+const workOrderRef = ref<HTMLElement | null>(null);
 
 const recentWorkOrders = ref<WorkOrder[]>([]);
 const recentProduction = ref<ProductionResult[]>([]);
@@ -202,23 +223,149 @@ const getWorkOrderStatusText = (status: string) => {
 
 const loadDashboardData = async () => {
   try {
-    const [kpiData, workOrders, production, materials, equipment] =
-      await Promise.all([
-        ApiService.getDashboardKPI(),
-        ApiService.getRecentWorkOrders(),
-        ApiService.getRecentProductionResults(),
-        ApiService.getLowStockMaterials(),
-        ApiService.getEquipmentList(),
-      ]);
+    const [
+      kpiData,
+      workOrders,
+      production,
+      materials,
+      equipment,
+      dailyProduction,
+      equipmentStatus,
+      yieldTrend,
+      WorkOrderStatus,
+    ] = await Promise.all([
+      ApiService.getDashboardKPI(),
+      ApiService.getRecentWorkOrders(),
+      ApiService.getRecentProductionResults(),
+      ApiService.getLowStockMaterials(),
+      ApiService.getEquipmentList(),
+      ApiService.getDailyProduction(),
+      ApiService.getEquipmentStatus(),
+      ApiService.getYieldTrend(),
+      ApiService.getWorkOrderStatus(),
+    ]);
 
     kpi.value = kpiData;
     recentWorkOrders.value = workOrders;
     recentProduction.value = production;
     lowStockMaterials.value = materials;
     equipmentList.value = equipment;
+
+    initProductionChart(dailyProduction);
+    initEquipmentChart(equipmentStatus);
+    initYieldChart(yieldTrend);
+    initWorkOrderChart(WorkOrderStatus);
   } catch (error) {
     console.error("Dashboard 데이터 로드 실패:", error);
   }
+};
+
+const initProductionChart = (data: { date: string; quantity: number }[]) => {
+  if (!productionChartRef.value) return;
+  const chart = echarts.init(productionChartRef.value);
+  chart.setOption({
+    tooltip: { trigger: "axis" },
+    xAxis: { type: "category", data: data.map((d) => d.date) },
+    yAxis: { type: "value", name: "생산량" },
+    series: [
+      {
+        type: "bar",
+        data: data.map((d) => d.quantity),
+        itemStyle: { color: "#3b82f6" },
+      },
+    ],
+  });
+};
+
+const initEquipmentChart = (data: Record<string, number>) => {
+  if (!equipmentChartRef.value) return;
+  const chart = echarts.init(equipmentChartRef.value);
+  chart.setOption({
+    tooltip: { trigger: "item", formatter: "{b}: {c}대 ({d}%)" },
+    legend: { bottom: 0, itemWidth: 12, itemHeight: 12 },
+    series: [
+      {
+        type: "pie",
+        radius: ["40%", "65%"],
+        center: ["50%", "45%"],
+        label: { show: false },
+        labelLine: { show: false },
+        data: [
+          { value: data.active, name: "가동", itemStyle: { color: "#10b981" } },
+          {
+            value: data.stopped,
+            name: "정지",
+            itemStyle: { color: "#6b7280" },
+          },
+          {
+            value: data.maintenance,
+            name: "점검",
+            itemStyle: { color: "#f59e0b" },
+          },
+          { value: data.error, name: "이상", itemStyle: { color: "#ef4444" } },
+        ],
+      },
+    ],
+  });
+};
+
+const initYieldChart = (data: { date: string; yieldRate: number }[]) => {
+  if (!yieldChartRef.value) return;
+  const chart = echarts.init(yieldChartRef.value);
+  chart.setOption({
+    tooltip: { trigger: "axis", formatter: "{b}: {c}%" },
+    xAxis: { type: "category", data: data.map((d) => d.date) },
+    yAxis: { type: "value", name: "수율(%)", min: 90, max: 100 },
+    series: [
+      {
+        type: "line",
+        data: data.map((d) => d.yieldRate.toFixed(1)),
+        smooth: true,
+        itemStyle: { color: "#10b981" },
+        areaStyle: { color: "rgba(16, 185, 129, 0.1)" },
+      },
+    ],
+  });
+};
+
+const initWorkOrderChart = (data: Record<string, number>) => {
+  if (!workOrderRef.value) return;
+  const chart = echarts.init(workOrderRef.value);
+  chart.setOption({
+    tooltip: { trigger: "item", formatter: "{b}: {c}개 ({d}%)" },
+    legend: { bottom: 0, itemWidth: 12, itemHeight: 12 },
+    series: [
+      {
+        type: "pie",
+        radius: ["40%", "65%"],
+        center: ["50%", "45%"],
+        label: { show: false },
+        labelLine: { show: false },
+        data: [
+          {
+            value: data.in_progress,
+            name: "진행중",
+            itemStyle: { color: "#10b981" },
+          },
+          {
+            value: data.completed,
+            name: "완료",
+            itemStyle: { color: "#6b7280" },
+          },
+          {
+            value: data.waiting,
+            name: "대기",
+            itemStyle: { color: "#f59e0b" },
+          },
+          {
+            value: data.cancelled,
+            name: "취소",
+            itemStyle: { color: "#ef4444" },
+          },
+        ],
+      },
+    ],
+  });
 };
 
 onMounted(() => {
